@@ -153,17 +153,13 @@ def main():
         return
 
     df = pd.read_csv(PATH)
-    
-    if os.path.exists(MODEL_PATH):
-        print(f"Existing model found. Loading...")
-        model = joblib.load(MODEL_PATH)
-    else:
-        model = train_and_save_best_model(df)
 
-    while True:
-        predict_interactive(model)
-        if get_input("\nPredict another patient? (y/n): ", options=["y", "n"]).lower() == 'n':
-            break
+    if not os.path.exists(MODEL_PATH):
+        print("Training model...")
+        train_and_save_best_model(df)
+    else:
+        print(f"Model file '{MODEL_PATH}' already exists.")
+
 
 if __name__ == "__main__":
     main()
