@@ -1,35 +1,26 @@
-import streamlit as st
-import pandas as pd
-import joblib
 import os
 import subprocess
+import sys
+import joblib
+import pandas as pd
+import streamlit as st
 
-# --- Page Configuration ---
-st.set_page_config(page_title="Hospital Bill Predictor", page_icon="🏥")
+st.set_page_config(page_title="Hospital Bill Predictor")
 
-# --- Load the Model ---
-@st.cache_resource # This keeps the model in memory so it doesn't reload every time
-
-
-
-def train_model():
-    """Runs model.py script if the joblib model file is missing."""
-    st.info("Model file not found! Training a new model via model.py...")
-    # Execute model.py programmatically
-    result = subprocess.run(
-        ["python", "model.py"], capture_output=True, text=True
-    )
-
-    # Throw an exception if model.py encounters an error (e.g. missing dataset)
-    if result.returncode != 0:
-        raise RuntimeError(f"Error training model:\n{result.stderr}")
-    
 MODEL_PATH = "best_hospital_bill_model.joblib"
+
 
 @st.cache_resource
 def load_model():
     if not os.path.exists(MODEL_PATH):
-        train_model()
+        # Runs model.py using the active Python environment
+        result = subprocess.run(
+            [sys.executable, "model.py"], capture_output=True, text=True
+        )
+
+        if result.returncode != 0:
+            raise RuntimeError(f"Model training failed:\n{result.stderr}")
+
     return joblib.load(MODEL_PATH)
 
 
