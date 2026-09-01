@@ -1,5 +1,7 @@
 pandas
 os
+streamlit
+scikit-learn
 joblib
 numpy
 sklearn
