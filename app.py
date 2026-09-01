@@ -1,19 +1,42 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import os
+import subprocess
 
 # --- Page Configuration ---
 st.set_page_config(page_title="Hospital Bill Predictor", page_icon="🏥")
 
 # --- Load the Model ---
 @st.cache_resource # This keeps the model in memory so it doesn't reload every time
+
+
+
+def train_model():
+    """Runs model.py script if the joblib model file is missing."""
+    st.info("Model file not found! Training a new model via model.py...")
+    # Execute model.py programmatically
+    result = subprocess.run(
+        ["python", "model.py"], capture_output=True, text=True
+    )
+
+    # Throw an exception if model.py encounters an error (e.g. missing dataset)
+    if result.returncode != 0:
+        raise RuntimeError(f"Error training model:\n{result.stderr}")
+    
+MODEL_PATH = "best_hospital_bill_model.joblib"
+
+@st.cache_resource
 def load_model():
-    return joblib.load("best_hospital_bill_model.joblib")
+    if not os.path.exists(MODEL_PATH):
+        train_model()
+    return joblib.load(MODEL_PATH)
+
 
 try:
     model = load_model()
-except:
-    st.error("Model file not found! Please run your training script first.")
+except Exception as e:
+    st.error(f"Failed to load or train model: {e}")
     st.stop()
 
 # --- UI Layout ---
@@ -33,7 +56,6 @@ with col2:
     smoker = st.selectbox("Is the patient a smoker?", ["no", "yes"])
     region = st.selectbox("Region", ["northeast", "northwest", "southeast", "southwest"])
 
-# --- Prediction Logic ---
 if st.button("Predict Medical Charges", type="primary"):
     # Create a DataFrame for the model
     input_data = pd.DataFrame([{
@@ -47,10 +69,8 @@ if st.button("Predict Medical Charges", type="primary"):
 
     prediction = model.predict(input_data)[0]
     
-    # Display Result
     st.divider()
     st.subheader(f"Estimated Bill: :blue[${prediction:,.2f}]")
     
-    # Optional: Display a helpful tip based on the prediction
     if smoker == "yes":
         st.warning("Note: Smoking status significantly increases the predicted medical costs.")
