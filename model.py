@@ -89,29 +89,6 @@ def train_and_save_best_model(df):
     joblib.dump(best_pipe, MODEL_PATH)
     return best_pipe
 
-def predict_interactive(model):
-    print("\n--- Patient Details for Prediction ---")
-    data = {
-        "age": get_input("Age: ", int, 0, 120),
-        "bmi": get_input("BMI: ", float, 10.0, 70.0),
-        "children": get_input("Number of Children: ", int, 0, 20),
-        "sex": get_input("Sex (male/female): ", options=["male", "female"]),
-        "smoker": get_input("Smoker (yes/no): ", options=["yes", "no"]),
-        "region": get_input("Region (northeast/northwest/southeast/southwest): ", 
-        options=["northeast", "northwest", "southeast", "southwest"])
-    }
-
-    sample_df = pd.DataFrame([data])
-    prediction = model.predict(sample_df)[0]
-    
-    lower_bound = prediction * 0.85
-    upper_bound = prediction * 1.15
-
-    print(f"\n" + "*"*40)
-    print(f"PREDICTED BILL: ${prediction:,.2f}")
-    print(f"ACCURACY RANGE (15%): ${lower_bound:,.2f} - ${upper_bound:,.2f}")
-    print("*"*40)
-
 def get_input(prompt, type_=str, min_=None, max_=None, options=None):
     while True:
         try:
